@@ -1,1 +1,2 @@
-requires portAudio glew glfw MikeUI
+Repo for learning purposes
+requires portAudio glew glfw UI
