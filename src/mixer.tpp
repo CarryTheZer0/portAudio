@@ -2,16 +2,17 @@
 template< int NINPUTS >
 int Mixer<NINPUTS>::generateBlock(unsigned int frameCount, float* buffer)
 {
+    // todo check m_inputs' elements are initialised
+
     m_inputs.at(0)->generateBlock(frameCount, buffer);
     
-    for (int i = 1; i < m_inputs.size(); i++)
+    for (int i = 1; i < NINPUTS; i++)
     {
         float currBuffer[frameCount*2];
         m_inputs.at(i)->generateBlock(frameCount, currBuffer);
-        for ( unsigned int i=0; i < frameCount; i++ )
+        for ( unsigned int i=0; i < frameCount * 2; i++ )
         {
-            buffer[i*2] += currBuffer[i*2];
-            buffer[(i*2) + 1] += currBuffer[(i*2) + 1];
+            buffer[i] += currBuffer[i];
         }
     }
 
