@@ -23,6 +23,7 @@
 #include "adsrEnvelope.h"
 #include "kickTest.h"
 #include "mixer.h"
+#include "note.h"
 
 int main() {
 	PaError err = Pa_Initialize();
@@ -54,47 +55,54 @@ int main() {
 
     UIRenderer renderer = UIRenderer(s);
 
-	SineWave mySine;
-    SineWave mySine2 = SineWave(330.0f, 0.2f);
-    SineWave mySine3 = SineWave(440.0f, 0.2f);
-    SineWave mySine4 = SineWave(550.0f, 0.2f);
-    SineWave mySine5 = SineWave(660.0f, 0.2f);
+    for (int i = 0; i < 1; i++) {
+        float fundamental_frequency = 100.0f;
+    }
+
+	// SineWave mySine;
+    // SineWave mySine2 = SineWave(330.0f, 0.2f);
+    // SineWave mySine3 = SineWave(440.0f, 0.2f);
+    // SineWave mySine4 = SineWave(550.0f, 0.2f);
+    // SineWave mySine5 = SineWave(660.0f, 0.2f);
 	
-	KickTest myKick;
+	// KickTest myKick;
 
-    Mixer<2> myMixer;
-    Mixer<2> myMixer2;
-    Mixer<3> myMixer3;
-    myMixer.setInput(&mySine2, 0);
-    myMixer.setInput(&mySine3, 1);
+    // Mixer<2> myMixer;
+    // Mixer<2> myMixer2;
+    Mixer<2> myMixer3;
+    // myMixer.setInput(&mySine2, 0);
+    // myMixer.setInput(&mySine3, 1);
 
-    myMixer2.setInput(&mySine4, 0);
-    myMixer2.setInput(&mySine5, 1);
+    // myMixer2.setInput(&mySine4, 0);
+    // myMixer2.setInput(&mySine5, 1);
     
-	myKick.setDecayTime(0.1f);
+	// myKick.setDecayTime(0.1f);
 
-    AdsrEnvelope myEnvelope(&myMixer);
+    Note myNote(440.0f);
+    Note myNote2(550.0f);
+    Note myNote2(660.0f);
+
+    AdsrEnvelope myEnvelope(myNote.get_pOutput());
 
 	myEnvelope.setAttackTime(0.1f);
 	myEnvelope.setDecayTime(2.0f);
 	myEnvelope.setReleaseTime(0.05f);
 
-    AdsrEnvelope myEnvelope2(&myMixer2);
+    AdsrEnvelope myEnvelope2(myNote2.get_pOutput());
 
 	myEnvelope2.setAttackTime(0.1f);
 	myEnvelope2.setDecayTime(2.0f);
 	myEnvelope2.setReleaseTime(0.05f);
 
     myMixer3.setInput(&myEnvelope, 0);
-    myMixer3.setInput(&myKick, 1);
-    myMixer3.setInput(&myEnvelope2, 2);
+    myMixer3.setInput(&myEnvelope2, 1);
 
 	AudioStream myStream = AudioStream(&myMixer3);
 
 	myStream.openStream();
 	myStream.startPlayback();
 
-	mySine.setFrequency(220.0f);
+	// mySine.setFrequency(220.0f);
 
 	glm::mat4 view = glm::lookAt(
         glm::vec3(0,0,1),  // location
@@ -126,7 +134,7 @@ int main() {
     panel.addChild(&button3);
     button3.setRect(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f), glm::vec4(60.0f, 60.0f, 20.0f, 20.0f));
 
-    auto hitDrum = std::bind(&KickTest::hit, &myKick);
+    // auto hitDrum = std::bind(&KickTest::hit, &myKick);
     auto hitNote = std::bind(&AdsrEnvelope::noteDown, &myEnvelope);
     auto releaseNote = std::bind(&AdsrEnvelope::noteUp, &myEnvelope);
     auto hitNote2 = std::bind(&AdsrEnvelope::noteDown, &myEnvelope2);
@@ -135,7 +143,7 @@ int main() {
     button1.setCallbackUp(releaseNote);
     button2.setCallback(hitNote2);
     button2.setCallbackUp(releaseNote2);
-    button3.setCallback(hitDrum);
+    // button3.setCallback(hitDrum);
 
 	InputHandler input = InputHandler(&root);
 

@@ -1,3 +1,10 @@
+/*
+ * mixer.tpp
+ *
+ *  Created on: 19 Dec 2023
+ *      Author: mchlp
+ */
+
 
 template< int NINPUTS >
 int Mixer<NINPUTS>::generateBlock(unsigned int frameCount, float* buffer)
@@ -5,7 +12,7 @@ int Mixer<NINPUTS>::generateBlock(unsigned int frameCount, float* buffer)
     // todo check m_inputs' elements are initialised
 
     m_inputs.at(0)->generateBlock(frameCount, buffer);
-    
+
     for (int i = 1; i < NINPUTS; i++)
     {
         float currBuffer[frameCount*2];
