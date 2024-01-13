@@ -59,50 +59,24 @@ int main() {
         float fundamental_frequency = 100.0f;
     }
 
-	// SineWave mySine;
-    // SineWave mySine2 = SineWave(330.0f, 0.2f);
-    // SineWave mySine3 = SineWave(440.0f, 0.2f);
-    // SineWave mySine4 = SineWave(550.0f, 0.2f);
-    // SineWave mySine5 = SineWave(660.0f, 0.2f);
-	
-	// KickTest myKick;
+    Mixer<5> myMixer;
 
-    // Mixer<2> myMixer;
-    // Mixer<2> myMixer2;
-    Mixer<2> myMixer3;
-    // myMixer.setInput(&mySine2, 0);
-    // myMixer.setInput(&mySine3, 1);
+    Note myNote(130.81f);
+    Note myNote2(146.83f);
+    Note myNote3(164.81f);
+    Note myNote4(174.61f);
+    Note myNote5(196.00f);
 
-    // myMixer2.setInput(&mySine4, 0);
-    // myMixer2.setInput(&mySine5, 1);
-    
-	// myKick.setDecayTime(0.1f);
+    myMixer.setInput(myNote.get_pOutput(), 0);
+    myMixer.setInput(myNote2.get_pOutput(), 1);
+    myMixer.setInput(myNote3.get_pOutput(), 2);
+    myMixer.setInput(myNote4.get_pOutput(), 3);
+    myMixer.setInput(myNote5.get_pOutput(), 4);
 
-    Note myNote(440.0f);
-    Note myNote2(550.0f);
-    Note myNote2(660.0f);
-
-    AdsrEnvelope myEnvelope(myNote.get_pOutput());
-
-	myEnvelope.setAttackTime(0.1f);
-	myEnvelope.setDecayTime(2.0f);
-	myEnvelope.setReleaseTime(0.05f);
-
-    AdsrEnvelope myEnvelope2(myNote2.get_pOutput());
-
-	myEnvelope2.setAttackTime(0.1f);
-	myEnvelope2.setDecayTime(2.0f);
-	myEnvelope2.setReleaseTime(0.05f);
-
-    myMixer3.setInput(&myEnvelope, 0);
-    myMixer3.setInput(&myEnvelope2, 1);
-
-	AudioStream myStream = AudioStream(&myMixer3);
+	AudioStream myStream = AudioStream(&myMixer);
 
 	myStream.openStream();
 	myStream.startPlayback();
-
-	// mySine.setFrequency(220.0f);
 
 	glm::mat4 view = glm::lookAt(
         glm::vec3(0,0,1),  // location
@@ -126,24 +100,44 @@ int main() {
 
 	Button button1 = Button(glm::vec3(0.0f, 1.0f, 0.0f), 30.0f);
     panel.addChild(&button1);
-    button1.setRect(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f), glm::vec4(10.0f, 10.0f, 20.0f, 20.0f));
+    button1.setRect(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f), glm::vec4(10.0f, 10.0f, 10.0f, 70.0f));
+    
     Button button2 = Button(glm::vec3(0.0f, 1.0f, 0.0f), 30.0f);
     panel.addChild(&button2);
-    button2.setRect(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f), glm::vec4(40.0f, 10.0f, 20.0f, 20.0f));
+    button2.setRect(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f), glm::vec4(22.0f, 10.0f, 10.0f, 70.0f));
+    
     Button button3 = Button(glm::vec3(0.0f, 1.0f, 0.0f), 30.0f);
     panel.addChild(&button3);
-    button3.setRect(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f), glm::vec4(60.0f, 60.0f, 20.0f, 20.0f));
+    button3.setRect(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f), glm::vec4(34.0f, 10.0f, 10.0f, 70.0f));
+    
+    Button button4 = Button(glm::vec3(0.0f, 1.0f, 0.0f), 30.0f);
+    panel.addChild(&button4);
+    button4.setRect(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f), glm::vec4(46.0f, 10.0f, 10.0f, 70.0f));
+    
+    Button button5 = Button(glm::vec3(0.0f, 1.0f, 0.0f), 30.0f);
+    panel.addChild(&button5);
+    button5.setRect(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f), glm::vec4(58.0f, 10.0f, 10.0f, 70.0f));
 
-    // auto hitDrum = std::bind(&KickTest::hit, &myKick);
-    auto hitNote = std::bind(&AdsrEnvelope::noteDown, &myEnvelope);
-    auto releaseNote = std::bind(&AdsrEnvelope::noteUp, &myEnvelope);
-    auto hitNote2 = std::bind(&AdsrEnvelope::noteDown, &myEnvelope2);
-    auto releaseNote2 = std::bind(&AdsrEnvelope::noteUp, &myEnvelope2);
+    auto hitNote = std::bind(&Note::noteDown, &myNote);
+    auto releaseNote = std::bind(&Note::noteUp, &myNote);
+    auto hitNote2 = std::bind(&Note::noteDown, &myNote2);
+    auto releaseNote2 = std::bind(&Note::noteUp, &myNote2);
+    auto hitNote3 = std::bind(&Note::noteDown, &myNote3);
+    auto releaseNote3 = std::bind(&Note::noteUp, &myNote3);
+    auto hitNote4 = std::bind(&Note::noteDown, &myNote4);
+    auto releaseNote4 = std::bind(&Note::noteUp, &myNote4);
+    auto hitNote5 = std::bind(&Note::noteDown, &myNote5);
+    auto releaseNote5 = std::bind(&Note::noteUp, &myNote5);
     button1.setCallback(hitNote);
     button1.setCallbackUp(releaseNote);
     button2.setCallback(hitNote2);
     button2.setCallbackUp(releaseNote2);
-    // button3.setCallback(hitDrum);
+    button3.setCallback(hitNote3);
+    button3.setCallbackUp(releaseNote3);
+    button4.setCallback(hitNote4);
+    button4.setCallbackUp(releaseNote4);
+    button5.setCallback(hitNote5);
+    button5.setCallbackUp(releaseNote5);
 
 	InputHandler input = InputHandler(&root);
 

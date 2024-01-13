@@ -32,7 +32,7 @@ public:
 		m_decayRate(0.0000680f),
 		m_releaseRate(0.00000680f),
 		m_attackPower(0.5f),
-		m_sustainPower(0.1f),
+		m_sustainPower(0.3f),
 		m_target(0.0f)
 	{};
 	~AdsrEnvelope() = default;
