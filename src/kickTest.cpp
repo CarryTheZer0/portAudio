@@ -5,13 +5,13 @@
  *      Author: mchlp
  */
 
-#include "kickTest.h"
+#include "KickTest.h"
 
-int KickTest::generateBlock(unsigned int frameCount, float* buffer)
+int KickTest::processBlock(unsigned int frameCount, unsigned int channelCount, std::vector<float> &buffer)
 {
-	m_src.generateBlock(frameCount, buffer);
+	m_src.processBlock(frameCount, channelCount, buffer);
 
-	m_currentFreq -= m_decayRate * frameCount;
+	m_currentFreq -= (m_decayRate * frameCount * channelCount);
 	m_src.setFrequency(m_currentFreq);
 
 	if (m_currentFreq <= m_targetFreq)
@@ -24,4 +24,3 @@ void KickTest::hit()
 {
 	m_currentFreq = m_initFreq;
 }
-

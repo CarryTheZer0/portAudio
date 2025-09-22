@@ -1,28 +1,19 @@
 /*
- * adsrEnvelope.cpp
+ *  AdsrEnvelope.cpp
  *
  *  Created on: 25 Oct 2022
  *      Author: mchlp
  */
 
-#include "adsrEnvelope.h"
+#include "AdsrEnvelope.h"
 
-int AdsrEnvelope::generateBlock(unsigned int frameCount, float* buffer)
+
+float AdsrEnvelope::processSample(float sample)
 {
-	m_pInput->generateBlock(frameCount, buffer);
-
-    for( unsigned int i=0; i < frameCount; i++ )
-    {
-    	process();
-
-    	buffer[i*2] *= m_currentPower;  // left channel
-    	buffer[(i*2) + 1] *= m_currentPower;  // right channel
-    }
-
-	return 0;
+	return sample * m_currentPower;
 }
 
-void AdsrEnvelope::process()
+void AdsrEnvelope::nextFrame()
 {
 	switch(m_state)
 	{

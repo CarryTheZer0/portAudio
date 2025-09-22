@@ -11,7 +11,7 @@
 #include <functional>
 #include "portaudio.h"
 
-const int BUFFER_SIZE = 1024;
+const int FRAME_COUNT = 1024;  // power of 2 please
 
 class AudioObject;
 
@@ -24,7 +24,7 @@ public:
 		m_bufferIndex(0),
 		m_stream()
 	{};
-	~AudioStream() = default;
+	~AudioStream();
 
 	void startPlayback();
 	void stopPlayback();
@@ -51,9 +51,12 @@ public:
 			PaStreamCallbackFlags statusFlags);
 private:
 	AudioObject* m_pInput;
-	float m_buffer[BUFFER_SIZE];
+	std::vector<float> m_buffer;
 	unsigned int m_framesPerBuffer;
 	unsigned int m_bufferIndex;
+	unsigned int m_inChannelCount;
+	unsigned int m_outChannelCount;
+	
 	PaStream* m_stream;
 
 	PaStreamParameters m_outputParameters;
