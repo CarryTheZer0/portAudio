@@ -1,0 +1,29 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/*",
+                "${workspaceFolder}/src/*",
+                "${workspaceFolder}/src/*/*",
+                "C:/Clib/**",
+                "C:/Clib/portaudio/portaudio/include",
+                "C:/Users/mchlp/Documents/vsCode/UI/include",
+                "C:/Clib/fftw/include",
+                "C:/Clib/glfw-3.3.8/include",
+                "C:/Clib/glew-2.1.0/include",
+                "C:/Clib/glm"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "compilerPath": "C:\\llvm-mingw\\llvm-mingw-20230614-msvcrt-i686\\bin\\gcc.exe",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "windows-clang-x86"
+        }
+    ],
+    "version": 4
+}
