@@ -8,7 +8,7 @@
 #ifndef ADSRENVELOPE_H_
 #define ADSRENVELOPE_H_
 
-#include "audioObject.h"
+#include "AudioObject.h"
 
 enum AdsrState
 {
@@ -37,9 +37,9 @@ public:
 	{};
 	~AdsrEnvelope() = default;
 
-	int generateBlock(unsigned int frameCount, float* buffer) override;
+	float processSample(float sample) override;
 
-	void process();
+	void nextFrame() override;
 
 	// set attack time in seconds
 	void setAttackTime(float t) { m_attackRate = m_attackPower/(t * 44100.0f); }

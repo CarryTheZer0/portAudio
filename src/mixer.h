@@ -1,5 +1,5 @@
 /*
- * mixer.h
+ *  Mixer.h
  *
  *  Created on: 19 Dec 2023
  *      Author: mchlp
@@ -10,21 +10,21 @@
 
 #include <vector>
 
-#include "audioObject.h"
+#include "AudioObject.h"
 
-template< int NINPUTS >
 class Mixer : public AudioObject
 {
 public:
     Mixer() = default;
     ~Mixer() = default;
 
-    int generateBlock(unsigned int frameCount, float* buffer) override;
-    void setInput(AudioObject* obj, int index);
-private:
-    std::vector<AudioObject*> m_inputs = std::vector<AudioObject*> (NINPUTS);
-};
+    void processFrame(unsigned int frameIndex, unsigned int channelCount, std::vector<float> &buffer) override;
+    float processSample(float sample) override;
+    void nextFrame() override;
 
-#include "mixer.tpp"
+    void addInput(AudioObject* obj);
+private:
+    std::vector<AudioObject*> m_inputs;
+};
 
 #endif /* MIXER_H_ */
