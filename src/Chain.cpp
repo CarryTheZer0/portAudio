@@ -7,6 +7,20 @@
 
 #include "Chain.h"
 
+int Chain::processBlock(unsigned int frameCount, unsigned int channelCount, std::vector<float> &buffer)
+{
+    for (unsigned int index = 0; index < m_inputs.size(); index++)
+        m_inputs[index]->processBlock(frameCount, channelCount, buffer);
+
+    return 0;
+}
+
+void Chain::processFrame(unsigned int frameIndex, unsigned int channelCount, std::vector<float> &buffer)
+{
+    for (unsigned int index = 0; index < m_inputs.size(); index++)
+        m_inputs[index]->processFrame(frameIndex, channelCount, buffer);
+}
+
 float Chain::processSample(float sample)
 {
     sample = m_inputs[0]->processSample(sample);

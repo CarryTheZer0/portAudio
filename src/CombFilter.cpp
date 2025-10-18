@@ -8,12 +8,18 @@
 #include "CombFilter.h"
 
 
-CombFilter::CombFilter()
+CombFilter::CombFilter() :
+    m_previousSample(0.0f),
+    m_damping(0.0f),
+    m_feedback(0.5f)
 {
     setSize(0);
 }
 
-CombFilter::CombFilter(unsigned int size)
+CombFilter::CombFilter(unsigned int size, float damping, float feedback) :
+    m_previousSample(0.0f),
+    m_damping(damping),
+    m_feedback(feedback)
 {
     setSize(size);
 }
@@ -39,11 +45,14 @@ float CombFilter::processSample(float sample)
 {
     // read previous delayed sample
     const float delayedSample = m_filterBuffer[m_bufferIndex];
+    // when damping is 0, m_previousSample = delayedSample i.e. a normal comb filter
+    m_previousSample = (delayedSample * (1.0f - m_damping.getValue())) + 
+                       (m_previousSample * m_damping.step());
 
     // write new delayed sample
+    m_filterBuffer[m_bufferIndex] = sample + (m_previousSample * m_feedback.step());  
     m_bufferIndex = (m_bufferIndex + 1) % m_bufferSize;
-    m_filterBuffer[m_bufferIndex] = sample;  
-    
+
     // write processed sample
-    return delayedSample + (sample * -0.5f);
+    return delayedSample;
 }

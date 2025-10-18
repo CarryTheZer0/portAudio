@@ -49,5 +49,5 @@ float AllPassFilter::processSample(float sample)
     m_filterBuffer[m_bufferIndex] = sample + (delayedSample * m_feedback.getValue());  
     
     // write processed sample
-    return delayedSample + (sample * -m_feedback.getValueAndStep());
+    return delayedSample + (sample * -m_feedback.step());
 }

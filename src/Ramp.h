@@ -15,16 +15,14 @@ public:
     Ramp() = default;
     Ramp(float value);
 
-    void step();
+    float step();
+    float getValue() { return m_currentValue; }
 
 	void setTarget(float target);
     void setTarget(float target, float time);
 
     void setRate(float r) { m_rate = r; }
     void setTime(float t) { m_time = t; }
-
-    float getValue() { return m_currentValue; }
-    float getValueAndStep();
 private:
     float m_rate;
     float m_time;
