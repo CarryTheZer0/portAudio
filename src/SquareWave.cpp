@@ -19,7 +19,7 @@ float SquareWave::processSample(float sample)
 
 void SquareWave::nextFrame()
 {
-    m_phase += m_step.getValueAndStep();
+    m_phase += m_step.step();
     if (m_phase > 2 * M_PI) m_phase -= 2 * M_PI;
 }
 

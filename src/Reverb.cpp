@@ -7,7 +7,10 @@
 
 #include "Reverb.h"
 
-Reverb::Reverb(unsigned int channelCount)
+Reverb::Reverb(unsigned int channelCount) :
+    m_dryGain(0.8f),
+    m_wetGainMain(0.1f),
+    m_wetGainOther(0.1f)
 {
     setChannels(channelCount);
 }
@@ -28,7 +31,7 @@ void Reverb::setChannels(unsigned int channelCount)
         {
             m_combs[channelIndex].emplace_back(
                 std::make_shared<CombFilter>(
-                    combTunings[combIndex] + m_stereoSpread * channelIndex
+                    combTunings[combIndex] + m_stereoSpread * channelIndex, 0.8f, 0.5f
                 )
             );
             m_combMixers[channelIndex]->addInput(m_combs[channelIndex][combIndex].get());
@@ -48,38 +51,51 @@ void Reverb::setChannels(unsigned int channelCount)
     }
 }
 
-int Reverb::processBlock(
-    unsigned int frameCount, unsigned int channelCount, std::vector<float> &buffer
-) {
-		if (m_bypass) return 0;
-
-		for( unsigned int frameIndex=0; frameIndex < frameCount; frameIndex++ )
-		{
-			nextFrame();
-			for ( unsigned int channelIndex=0; channelIndex < channelCount; channelIndex++ )
-			{
-				unsigned int bufferIndex = (frameIndex * channelCount) + channelIndex;
-				buffer[bufferIndex] = processSample(buffer[bufferIndex], channelIndex);
-			}
-		}
-
-		return 0;
+void Reverb::setDamping(float damping)
+{
+    int index = 0;
+    for (auto channel : m_combs)
+        for (auto comb : m_combs[index++])
+            comb.get()->setDamping(damping);
 }
 
-float Reverb::processSample(float sample, unsigned int channelIndex)
+void Reverb::setFeedback(float feedback)
 {
-    if (m_bypass) return sample;
-
-    sample = sample * 0.5f + m_chains[channelIndex]->processSample(sample) * 0.5f;
-
-    return sample;
+    int index = 0;
+    for (auto channel : m_combs)
+        for (auto comb : m_combs[index++])
+            comb.get()->setFeedback(feedback);
 }
 
-float Reverb::processSample(float sample)
+void Reverb::processFrame(unsigned int frameIndex, unsigned int channelCount, std::vector<float> &buffer)
 {
-    if (m_bypass) return sample;
+    float outputs[channelCount]; 
+    float outputsSummed = 0;
+    
+    for ( unsigned int channelIndex=0; channelIndex < channelCount; channelIndex++ )
+    {
+        unsigned int bufferIndex = (frameIndex * channelCount) + channelIndex;
+        float newSample = m_chains[channelIndex]->processSample(buffer[bufferIndex]);
+        outputs[channelIndex] = newSample;
+        outputsSummed += newSample;
+    }
 
-    sample = sample * 0.5f + m_chains[0]->processSample(sample) * 0.5f;
+    for ( unsigned int channelIndex=0; channelIndex < channelCount; channelIndex++ )
+    {
+        unsigned int bufferIndex = (frameIndex * channelCount) + channelIndex;
+        
+        float outputsOther = (outputsSummed - outputs[channelIndex]) / (channelCount - 1);
+        
+        buffer[bufferIndex] = 
+            (outputs[channelIndex] * m_wetGainMain.getValue()) +
+            (outputsOther * m_wetGainOther.getValue()) + 
+            (buffer[bufferIndex] * m_dryGain.getValue());
+    }
+}
 
-    return sample;
+void Reverb::nextFrame()
+{
+    m_wetGainMain.step();
+    m_wetGainOther.step();
+    m_dryGain.step();
 }

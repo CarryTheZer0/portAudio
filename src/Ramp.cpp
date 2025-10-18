@@ -16,12 +16,13 @@ Ramp::Ramp(float value) :
     m_time(0.0f)
 {}
 
-void Ramp::step()
+float Ramp::step()
 {
-    if (m_stepsRemaining <= 0) return;
+    if (m_stepsRemaining <= 0) return m_currentValue;
     
     m_currentValue += m_rate;
     m_stepsRemaining--;
+    return m_currentValue;
 }
 
 void Ramp::setTarget(float target)
@@ -35,10 +36,4 @@ void Ramp::setTarget(float target, float time)
 {
     setTime(time);
     setTarget(target);
-}
-
-float Ramp::getValueAndStep()
-{
-    step();
-    return m_currentValue;
 }
