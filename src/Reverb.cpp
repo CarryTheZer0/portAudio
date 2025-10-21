@@ -1,9 +1,9 @@
-// /*
-//  *  Reverb.h
-//  *
-//  *  Created on: 29 Aug 2025
-//  *      Author: mchlp
-//  */
+/*
+ *  Reverb.h
+ *
+ *  Created on: 29 Aug 2025
+ *      Author: mchlp
+ */
 
 #include "Reverb.h"
 

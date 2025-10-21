@@ -26,7 +26,7 @@ public:
     float processSample(float sample) override;
 
     void setDamping(float damping) { m_damping.setTarget(damping, 0.1f); }
-    void setFeedback(float feedback) { m_feedback.setTarget(feedback, 0.1f); }
+    void setFeedback(float feedback) { m_feedback.setTarget(feedback, 0.1f); }  // todo verify damping and feedback values
 private:
     std::vector<float> m_filterBuffer;
     unsigned int m_bufferSize = 0, m_bufferIndex = 0;
