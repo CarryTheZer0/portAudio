@@ -8,7 +8,7 @@
 #include <math.h>
 
 #include "AudioStream.h"
-#include "AudioObject.h"
+#include "Graph.h"
 
 
 AudioStream::~AudioStream()
@@ -107,7 +107,7 @@ int AudioStream::generateBlock(const void* input, void* output,
 		if (m_bufferIndex >= FRAME_COUNT * m_outChannelCount)
         {
         	m_bufferIndex = 0;
-        	m_pInput->processBlock(FRAME_COUNT, m_outChannelCount, m_buffer);
+        	m_buffer = m_pInput->generateBlock(m_buffer);  // (FRAME_COUNT, m_outChannelCount, m_buffer);
 
 			while (m_bufferIndex < m_buffer.size())
 				*out++ = m_buffer[m_bufferIndex++];

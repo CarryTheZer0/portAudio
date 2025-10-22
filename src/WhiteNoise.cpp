@@ -17,3 +17,8 @@ float WhiteNoise::processSample(float sample)
 {
     return m_power.step() * m_distribution(m_generator);
 }
+
+void WhiteNoise::setPower(float a)
+{
+    m_power.setTarget(a, 0.1f);
+}

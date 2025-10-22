@@ -13,13 +13,13 @@
 
 const int FRAME_COUNT = 1024;  // power of 2 please
 
-class AudioObject;
+class Graph;
 
 class AudioStream
 {
 public:
 	AudioStream() = delete;
-	AudioStream(AudioObject* pInput) :
+	AudioStream(Graph* pInput) :
 		m_pInput(pInput),
 		m_bufferIndex(0),
 		m_stream()
@@ -50,7 +50,7 @@ public:
 			const PaStreamCallbackTimeInfo* timeInfo,
 			PaStreamCallbackFlags statusFlags);
 private:
-	AudioObject* m_pInput;
+	Graph* m_pInput;
 	std::vector<float> m_buffer;
 	unsigned int m_framesPerBuffer;
 	unsigned int m_bufferIndex;

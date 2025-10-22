@@ -5,6 +5,9 @@
  *      Author: mchlp
  */
 
+#ifndef BIQUAD_H_
+#define BIQUAD_H_
+
 #include "AudioObject.h"
 
 class Biquad : public AudioObject
@@ -25,3 +28,5 @@ private:
     // coefficients. a is for the poles and b is for the zeros
     float m_a1, m_a2, m_b0, m_b1, m_b2;
 };
+
+#endif /* BIQUAD_H_ */
