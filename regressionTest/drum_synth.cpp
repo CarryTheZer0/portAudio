@@ -19,15 +19,17 @@
 #include "portaudio.h"
 
 #include "AudioStream.h"
+#include "Graph.h"
 #include "SineWave.h"
 #include "SquareWave.h"
 #include "AdsrEnvelope.h"
-#include "KickTest.h"
+#include "WhiteNoise.h"
 #include "Mixer.h"
 #include "Chain.h"
 #include "AllPassFilter.h"
 #include "CombFilter.h"
 #include "Reverb.h"
+#include "Biquad.h"
 
 int main() {
 	PaError err = Pa_Initialize();
@@ -59,19 +61,29 @@ int main() {
 
     DebugRenderer renderer = DebugRenderer(s, s, 1024, 768);
 
-    SquareWave mySqaure = SquareWave(440.0f, 0.1f);
-    SquareWave mySqaure1 = SquareWave(660.0f, 0.2f);
 
-    Chain myChain1;
-    Mixer myMixer;
     Reverb myReverb(2);
+    WhiteNoise myNoise;
+    Biquad myBiquad = Biquad::makeLowPass();
+    Biquad myBiquad2 = Biquad::makeLowPass();
 
     AllPassFilter myAllPass = AllPassFilter(441, 0.1f);
-    
-    myChain1.addInput(&mySqaure);
-    myChain1.addInput(&myReverb);
 
-	AudioStream myStream = AudioStream(&myChain1);
+    Graph g;
+    AudioObject in = AudioObject(); int in_i = g.addNode(&in);
+    AudioObject out = AudioObject(); int out_i = g.addNode(&out);
+    int noise_i = g.addNode(&myNoise);
+    g.addChild(in_i, noise_i);
+    int lowPass1_i = g.addNode(&myBiquad);
+    int lowPass2_i = g.addNode(&myBiquad2);
+    int reverb_i = g.addNode(&myReverb);
+    g.addChild(noise_i, lowPass1_i);
+    g.addChild(in_i, reverb_i);
+    g.addChild(reverb_i, lowPass2_i);
+    g.addChild(lowPass1_i, out_i);
+    g.addChild(lowPass2_i, out_i);
+
+	AudioStream myStream = AudioStream(&g);
 
 	myStream.openStream();
 	myStream.startPlayback();
@@ -115,20 +127,15 @@ int main() {
     panel->addChild(slider5);
     slider5->setRect(glm::vec4(0.0f, 0.0f, 0.0f, 10.0f), glm::vec4(10.0f, 45.0f, 40.0f, 0.0f));
 
-    std::shared_ptr<Slider> slider6 = std::make_shared<Slider>(glm::vec3(0.0f, 1.0f, 1.0f), 30.0f, 100.0f, 1000.0f);
-    panel->addChild(slider6);
-    slider6->setRect(glm::vec4(0.0f, 0.0f, 0.0f, 10.0f), glm::vec4(10.0f, 55.0f, 40.0f, 0.0f));
-
-    auto hitNote = std::bind(&Oscillator::setFrequency, &mySqaure, 100.0f);
-    auto releaseNote = std::bind(&Oscillator::setFrequency, &mySqaure, 660.0f);
-    auto hitNote2 = std::bind(&AudioObject::setBypass, &myReverb, true);
-    auto releaseNote2 = std::bind(&AudioObject::setBypass, &myReverb, false);
+    auto hitNote = std::bind(&Oscillator::setBypass, &myReverb, true);
+    auto releaseNote = std::bind(&Oscillator::setBypass, &myReverb, false);
+    auto hitNote2 = std::bind(&WhiteNoise::setPower, &myNoise, 0.01f);
+    auto releaseNote2 = std::bind(&WhiteNoise::setPower, &myNoise, 0.6f);
     auto moveSlider = std::bind(&Reverb::setFeedback, &myReverb, std::placeholders::_1);
     auto moveSlider1 = std::bind(&Reverb::setDamping, &myReverb, std::placeholders::_1);
     auto moveSlider2 = std::bind(&Reverb::setDryGain, &myReverb, std::placeholders::_1);
     auto moveSlider3 = std::bind(&Reverb::setWetGain1, &myReverb, std::placeholders::_1);
     auto moveSlider4 = std::bind(&Reverb::setWetGain2, &myReverb, std::placeholders::_1);
-    auto moveSlider5 = std::bind(&Oscillator::setFrequency, &mySqaure, std::placeholders::_1);
     button1->setCallbackDown(hitNote);
     button1->setCallbackUp(releaseNote);
     button2->setCallbackDown(hitNote2);
@@ -138,7 +145,6 @@ int main() {
     slider3->setCallbackUpdate(moveSlider2);
     slider4->setCallbackUpdate(moveSlider3);
     slider5->setCallbackUpdate(moveSlider4);
-    slider6->setCallbackUpdate(moveSlider5);
     // button3->setCallbackDown(hitDrum);
 
 	temp_UI::InputHandler input = temp_UI::InputHandler(&root);
