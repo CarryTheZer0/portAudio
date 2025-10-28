@@ -14,23 +14,29 @@
 #include "AudioObject.h"
 
 
+enum NodeState
+{
+	Unvisited,
+    Processed,
+    Mixed
+};
+
 struct Node
 {
     Node() :
         process(nullptr),
         mixingStage(0),
-        outputBuffer(0)
+        outputBuffer(0)  // starts unset
     {}
 
     Node(AudioObject* process) :
         process(process),
         mixingStage(0),
-        outputBuffer(0)
+        outputBuffer(-1)  // starts unset
     {}
 
     AudioObject* process;
     int mixingStage;
-    int inputBuffer;
     int outputBuffer;
 };
 
@@ -71,9 +77,8 @@ private:
     int generateBlock(
         int currentBufferIndex,
         int currentNode, 
-        std::map<int, bool> &processed
+        std::map<int, NodeState> &processed
     );
-    void processBuffer();
     void mixBuffers(int target, int source);
 };
 

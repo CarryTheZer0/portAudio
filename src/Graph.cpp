@@ -5,7 +5,6 @@
  *      Author: mchlp
  */
 
-#include <iostream>  // todo temp
 #include <queue>
 #include <algorithm>
 
@@ -26,46 +25,52 @@ void Graph::updateMixingOrder(int currentNode)
         currentNode = nodeQueue.front();
         nodeQueue.pop();
 
-        if (isMixer(currentNode))
-            // increase mixer count 
-            currentStage++;
-
-        for (int parent : m_parents[currentNode])
+        for (int i = 0; i < m_parents[currentNode].size(); i++) // (int parent : m_parents[currentNode])
         {
-            // assign the mixing stage number to the node
-            m_nodes[parent].mixingStage = (currentStage > m_nodes[parent].mixingStage) ? currentStage : m_nodes[parent].mixingStage;
+            int parent = m_parents[currentNode][i];
+
+            if (!visited[parent])
+            {
+                // enqueue unvisited mixer nodes
+                visited[parent] = true;
+                nodeQueue.push(parent);
+
+                // assign the mixing stage number to the node
+                m_nodes[parent].mixingStage = currentStage + i;
+            }
 
             // skip over non mixer nodes
             while(m_parents[parent].size() == 1)
             {
-                m_nodes[parent].mixingStage = (currentStage > m_nodes[parent].mixingStage) ? currentStage : m_nodes[parent].mixingStage;
                 parent = m_parents[parent].at(0);
+                if (!visited[parent])
+                {
+                    visited[parent] = true;
+                    m_nodes[parent].mixingStage = currentStage + i;
+                }
             }
 
-            // enqueue unvisited mixer nodes
-            if (!visited[parent])
-            {
-                visited[parent] = true;
-                nodeQueue.push(parent);
-            }
+            currentStage++;
         }
     }
 }
 
 std::vector<float> Graph::generateBlock(std::vector<float> buffer)
 {
-    std::map<int, bool> processed;
+    std::map<int, NodeState> processed;
+    m_nodes[0].outputBuffer = 0;
     m_buffers = {buffer};
     generateBlock(0, 0, processed);
     return m_buffers[0];
 }
 
 int Graph::generateBlock(
-    int currentBufferIndex,
+    int currentBufferIndex,  // TODO see if currentBufferIndex can be m_buffers.size() - 1
     int currentNode, 
-    std::map<int, bool> &processed
+    std::map<int, NodeState> &processed
 ) {
-    processed[currentNode] = true;
+    m_buffers[m_nodes[currentNode].outputBuffer] = m_nodes[currentNode].process->processBlock(1024, 2, m_buffers[m_nodes[currentNode].outputBuffer]);  // TODO frame and channel count!
+    processed[currentNode] = Processed;
 
     // get a vector of child nodes sorted by mixing order 
     std::vector<int> childrenToProcess = m_children[currentNode];
@@ -80,40 +85,39 @@ int Graph::generateBlock(
     {
         int currentChild = childrenToProcess[i];
 
+        if ( m_nodes[currentChild].outputBuffer == -1 ) m_nodes[currentChild].outputBuffer = currentBufferIndex; 
+
         // while there are still parallel child nodes to process, the parent's output buffer is unavailable
         if (i < childrenToProcess.size() - 1) 
         {
-            m_buffers.push_back(m_buffers[currentBufferIndex]);
-            m_nodes[currentChild].outputBuffer = ++currentBufferIndex;
+            // create a new buffer if the input buffer is in use
+            m_buffers.push_back(m_buffers[m_nodes[currentNode].outputBuffer]);
+            currentBufferIndex++;
+            m_nodes[currentChild].outputBuffer = currentBufferIndex ? currentBufferIndex < m_nodes[currentChild].outputBuffer : m_nodes[currentChild].outputBuffer;
         }
         else
         {
-            m_nodes[currentChild].outputBuffer = m_nodes[currentNode].outputBuffer;
+            // use the input buffer as output
+            m_nodes[currentChild].outputBuffer = m_nodes[currentNode].outputBuffer ? m_nodes[currentNode].outputBuffer < m_nodes[currentChild].outputBuffer : m_nodes[currentChild].outputBuffer;
         }
 
-        // nodes that mix buffers will free one of the buffers
         if (isMixer(currentChild))
         {   
-            for ( int parent : m_parents[currentChild] )
-                if ( !processed[parent] )
-                {
-                    // mixer has an unprocessed input so return
-                    return currentBufferIndex;
-                }
-            
-            // use the lowest buffer as an output
+            bool unvisited = false; 
             for ( int parent : m_parents[currentChild] )
             {
-                m_nodes[currentChild].outputBuffer = ( m_nodes[parent].outputBuffer < m_nodes[currentChild].outputBuffer) ? m_nodes[parent].outputBuffer : m_nodes[currentChild].outputBuffer;
+                if ( processed[parent] == Processed && parent != currentNode )
+                {
+                    // mix buffers and free m_buffers[currentBufferIndex]
+                    mixBuffers(m_nodes[currentChild].outputBuffer, currentBufferIndex);
+                    m_buffers.pop_back();
+                    currentBufferIndex--;
+                    processed[currentNode] == Mixed;
+                }
+                else if ( processed[parent] == Unvisited ) unvisited = true;
+            
+                if ( unvisited ) return currentBufferIndex;
             }
-            // mix and free the top buffer
-            mixBuffers(m_nodes[currentChild].outputBuffer, currentBufferIndex);
-            m_buffers.pop_back();
-            currentBufferIndex--;
-        }
-        else
-        {
-            m_buffers[m_nodes[currentChild].outputBuffer] = m_nodes[currentChild].process->processBlock(1024, 2, m_buffers[m_nodes[currentNode].outputBuffer]);  // TODO frame and channel count!
         }
 
         // process child nodes recursively
