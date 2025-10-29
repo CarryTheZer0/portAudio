@@ -40,7 +40,7 @@ struct Node
     int outputBuffer;
 };
 
-class Graph
+class Graph : public AudioObject
 {
 public:
     Graph() :
@@ -63,7 +63,7 @@ public:
         updateMixingOrder(child);
     }
 
-    std::vector<float> generateBlock(std::vector<float> buffer);
+    void processBlock(unsigned int frameCount, unsigned int channelCount, std::vector<float> &buffer) override;
 
 private:
     int m_nextIndex;
@@ -74,8 +74,9 @@ private:
     std::vector<std::vector<float>> m_buffers;
 
     void updateMixingOrder(int outputNode);
-    int generateBlock(
-        int currentBufferIndex,
+    void processBlock(
+        unsigned int frameCount,
+        unsigned int channelCount,
         int currentNode, 
         std::map<int, NodeState> &processed
     );

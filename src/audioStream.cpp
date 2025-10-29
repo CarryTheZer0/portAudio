@@ -100,14 +100,14 @@ int AudioStream::generateBlock(const void* input, void* output,
 		// todo handle channels
 		for (unsigned int channelIndex=0; channelIndex < m_outChannelCount; channelIndex++)
 		{
-			if (true)  // if we are recording, fill the buffer with input data
+			if (false)  // if we are recording, fill the buffer with input data
 				m_buffer[m_bufferIndex++] = inValue;
 		}
 
 		if (m_bufferIndex >= FRAME_COUNT * m_outChannelCount)
         {
         	m_bufferIndex = 0;
-        	m_buffer = m_pInput->generateBlock(m_buffer);  // (FRAME_COUNT, m_outChannelCount, m_buffer); TODO
+        	m_pInput->processBlock(FRAME_COUNT, m_outChannelCount, m_buffer);
 
 			while (m_bufferIndex < m_buffer.size())
 				*out++ = m_buffer[m_bufferIndex++];

@@ -7,13 +7,14 @@
 
 #include "Chain.h"
 
-std::vector<float> Chain::processBlock(unsigned int frameCount, unsigned int channelCount, std::vector<float> buffer)
+void Chain::processBlock(unsigned int frameCount, unsigned int channelCount, std::vector<float> &buffer)
 {
-    std::vector<float> outBuffer;
-    for (unsigned int index = 0; index < m_inputs.size(); index++)
-        outBuffer = m_inputs[index]->processBlock(frameCount, channelCount, buffer);
+    if (m_bypass) return;
 
-    return outBuffer;
+    for (unsigned int index = 0; index < m_inputs.size(); index++)
+        m_inputs[index]->processBlock(frameCount, channelCount, buffer);
+
+    return;
 }
 
 void Chain::processFrame(unsigned int frameIndex, unsigned int channelCount, std::vector<float> &buffer)

@@ -23,17 +23,15 @@ public:
 	 * @param buffer 		The buffer to be filled.
 	 * @return 				The status code.
 	 */
-	virtual std::vector<float> processBlock(unsigned int frameCount, unsigned int channelCount, std::vector<float> buffer) 
+	virtual void processBlock(unsigned int frameCount, unsigned int channelCount, std::vector<float> &buffer) 
 	{
-		if (m_bypass) return buffer;
+		if (m_bypass) return;
 
 		for( unsigned int frameIndex=0; frameIndex < frameCount; frameIndex++ )
 		{
 			nextFrame();
 			processFrame(frameIndex, channelCount, buffer);
 		}
-
-		return buffer;
 	}
 
 	/**

@@ -18,7 +18,7 @@ public:
     Chain() = default;
     ~Chain() = default;
 
-    std::vector<float> processBlock(unsigned int frameCount, unsigned int channelCount, std::vector<float> buffer) override;
+    void processBlock(unsigned int frameCount, unsigned int channelCount, std::vector<float> &buffer) override;
     void processFrame(unsigned int frameIndex, unsigned int channelCount, std::vector<float> &buffer) override;
     float processSample(float sample) override;
     void nextFrame() override;
