@@ -15,7 +15,7 @@ public:
     Ramp() = default;
     Ramp(float value);
 
-    float step();
+    virtual float step();
     float getValue() { return m_currentValue; }
 
 	void setTarget(float target);
@@ -23,13 +23,14 @@ public:
 
     void setRate(float r) { m_rate = r; }
     void setTime(float t) { m_time = t; }
+protected:
+    float m_targetValue;
+    float m_currentValue;
+
+    unsigned int m_stepsRemaining; 
 private:
     float m_rate;
     float m_time;
-
-    float m_targetValue;
-    float m_currentValue;
-    unsigned int m_stepsRemaining; 
 };
 
 #endif /* RAMP_H_ */

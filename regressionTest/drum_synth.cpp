@@ -7,6 +7,9 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include <portaudio.h>
+#include <fstream>
+
 #include "DebugRenderer.h"
 #include "InputHandler.h"
 #include "Shader.h"
@@ -16,20 +19,22 @@
 #include "Slider.h"
 #include "Button.h"
 
-#include "portaudio.h"
-
 #include "AudioStream.h"
 #include "Graph.h"
-#include "SineWave.h"
-#include "SquareWave.h"
+#include "Sources/SineWave.h"
+#include "Sources/SquareWave.h"
 #include "AdsrEnvelope.h"
-#include "WhiteNoise.h"
-#include "Mixer.h"
-#include "Chain.h"
-#include "AllPassFilter.h"
-#include "CombFilter.h"
+#include "Sources/WhiteNoise.h"
+#include "Sources/Sampler.h"
+#include "Filters/AllPassFilter.h"
+#include "Filters/CombFilter.h"
 #include "Reverb.h"
-#include "Biquad.h"
+#include "Filters/Biquad.h"
+#include "Synthesizer/Synthesizer.h"
+#include "Synthesizer/SynthTemp.h"
+#include "Synthesizer/SampleSequencer.h"
+
+#include "Utility/WavReader.h"
 
 int main() {
 	PaError err = Pa_Initialize();
@@ -61,29 +66,48 @@ int main() {
 
     DebugRenderer renderer = DebugRenderer(s, s, 1024, 768);
 
+    FILE* file = fopen("C:/Users/mchlp/Documents/vsCode/synth/resources/02 Under Lies.wav", "rb");
+    RIFFHeader header = readHeader(file);
+    ChunkInfo formatInfo = readFormatInfo(file);
+    FormatChunk formatChunk = readFormatChunk(file);
+    int16_t data[10];
+    ChunkInfo dataInfo = readDataInfo(file);
+    readDataChunk<int16_t>(data, 10, file);
 
-    Reverb myReverb(2);
-    WhiteNoise myNoise;
+    std::cout << "audio_format " << formatChunk.audioFormat << std::endl;
+    std::cout << "channel_count " << formatChunk.channelCount << std::endl;
+    std::cout << "sample_rate " << formatChunk.sampleRate << std::endl;
+    std::cout << "byte_rate " << formatChunk.byteRate << std::endl;
+    std::cout << "step_size " << formatChunk.stepSize << std::endl;
+    std::cout << "bits_per_sample " << formatChunk.bitsPerSample << std::endl;
+    std::cout << "test " << header.chunkSize << std::endl;
+
+    fclose(file);
+
+    // Reverb myReverb(2);
     Biquad myBiquad = Biquad::makeLowPass();
-    Biquad myBiquad2 = Biquad::makeLowPass();
 
-    AllPassFilter myAllPass = AllPassFilter(441, 0.1f);
+    std::shared_ptr<Sampler> sampler = std::make_shared<Sampler>("C:/Users/mchlp/Documents/vsCode/synth/resources/02 Under Lies.wav");
+    sampler->setBypass(true);
 
-    Graph g;
-    AudioObject in = AudioObject(); int in_i = g.addNode(&in);
-    AudioObject out = AudioObject(); int out_i = g.addNode(&out);
-    int noise_i = g.addNode(&myNoise);
-    g.addChild(in_i, noise_i);
-    int lowPass1_i = g.addNode(&myBiquad);
-    int lowPass2_i = g.addNode(&myBiquad2);
-    int reverb_i = g.addNode(&myReverb);
-    g.addChild(noise_i, lowPass1_i);
-    g.addChild(in_i, reverb_i);
-    g.addChild(reverb_i, lowPass2_i);
-    g.addChild(lowPass1_i, out_i);
-    g.addChild(lowPass2_i, out_i);
+    std::shared_ptr<SampleSequencer> sampleSequencer = std::make_shared<SampleSequencer>();
+    sampleSequencer->setSource("C:/Users/mchlp/Documents/vsCode/synth/resources/kick.wav");
 
-	AudioStream myStream = AudioStream(&g);
+    std::shared_ptr<Graph> g1 = std::make_shared<Graph>();
+    std::shared_ptr<SquareWave> sine1 = std::make_shared<SquareWave>(440.0f, 0.3f);
+    std::shared_ptr<SineWave> sine2 = std::make_shared<SineWave>(100.0f, 0.3f);
+    // std::shared_ptr<Reverb> reverb = std::make_shared<Reverb>(2);
+
+    std::shared_ptr<SynthTemp> synthSource = std::make_shared<SynthTemp>();
+    synthSource->addSource(sine1, 1);
+    synthSource->addSource(sine2, 2);
+    std::shared_ptr<Synthesizer> synth = std::make_shared<Synthesizer>(sampleSequencer);
+    synth->addNote(50, std::make_shared<SampleSequencer>("C:/Users/mchlp/Documents/vsCode/synth/resources/ride.wav"));
+    synth->addNote(52, std::make_shared<SampleSequencer>("C:/Users/mchlp/Documents/vsCode/synth/resources/snare.wav"));
+
+    g1->addChild(g1->addNode(sampler), g1->addNode(synth));
+
+	AudioStream myStream = AudioStream(g1.get());
 
 	myStream.openStream();
 	myStream.startPlayback();
@@ -97,54 +121,82 @@ int main() {
 
 	std::shared_ptr<Button> button1 = std::make_shared<Button>(glm::vec3(0.0f, 1.0f, 0.0f), 30.0f);
     panel->addChild(button1);
-    button1->setRect(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f), glm::vec4(10.0f, 10.0f, 20.0f, 20.0f));
+    button1->setRect(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f), glm::vec4(10.0f, 10.0f, 5.0f, 20.0f));
     
     std::shared_ptr<Button> button2 = std::make_shared<Button>(glm::vec3(0.0f, 1.0f, 0.0f), 30.0f);
     panel->addChild(button2);
-    button2->setRect(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f), glm::vec4(40.0f, 10.0f, 20.0f, 20.0f));
+    button2->setRect(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f), glm::vec4(16.0f, 10.0f, 5.0f, 20.0f));
     
     std::shared_ptr<Button> button3 =  std::make_shared<Button>(glm::vec3(0.0f, 1.0f, 0.0f), 30.0f);
     panel->addChild(button3);
-    button3->setRect(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f), glm::vec4(60.0f, 60.0f, 20.0f, 20.0f));
+    button3->setRect(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f), glm::vec4(22.0f, 10.0f, 5.0f, 20.0f));
 
-    std::shared_ptr<Slider> slider1 = std::make_shared<Slider>(glm::vec3(0.0f, 1.0f, 1.0f), 30.0f);
+    std::shared_ptr<Button> button4 =  std::make_shared<Button>(glm::vec3(0.0f, 1.0f, 0.0f), 30.0f);
+    panel->addChild(button4);
+    button4->setRect(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f), glm::vec4(28.0f, 10.0f, 5.0f, 20.0f));
+
+    std::shared_ptr<Button> button5 =  std::make_shared<Button>(glm::vec3(0.0f, 1.0f, 0.0f), 30.0f);
+    panel->addChild(button5);
+    button5->setRect(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f), glm::vec4(34.0f, 10.0f, 5.0f, 20.0f));
+
+    std::shared_ptr<Button> button6 =  std::make_shared<Button>(glm::vec3(0.0f, 1.0f, 0.0f), 30.0f);
+    panel->addChild(button6);
+    button6->setRect(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f), glm::vec4(40.0f, 10.0f, 5.0f, 20.0f));
+
+    std::shared_ptr<Button> button7 =  std::make_shared<Button>(glm::vec3(0.0f, 1.0f, 0.0f), 30.0f);
+    panel->addChild(button7);
+    button7->setRect(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f), glm::vec4(46.0f, 10.0f, 5.0f, 20.0f));
+
+    std::shared_ptr<Slider> slider1 = std::make_shared<Slider>(glm::vec3(0.0f, 1.0f, 1.0f), 30.0f, 0.0f, 0.5f);
     panel->addChild(slider1);
     slider1->setRect(glm::vec4(0.0f, 0.0f, 0.0f, 10.0f), glm::vec4(10.0f, 31.0f, 40.0f, 0.0f));
 
-    std::shared_ptr<Slider> slider2 = std::make_shared<Slider>(glm::vec3(0.0f, 1.0f, 1.0f), 30.0f);
-    panel->addChild(slider2);
-    slider2->setRect(glm::vec4(0.0f, 0.0f, 0.0f, 10.0f), glm::vec4(10.0f, 33.0f, 40.0f, 0.0f));
+    // std::shared_ptr<Slider> slider2 = std::make_shared<Slider>(glm::vec3(0.0f, 1.0f, 1.0f), 30.0f);
+    // panel->addChild(slider2);
+    // slider2->setRect(glm::vec4(0.0f, 0.0f, 0.0f, 10.0f), glm::vec4(10.0f, 33.0f, 40.0f, 0.0f));
 
-    std::shared_ptr<Slider> slider3 = std::make_shared<Slider>(glm::vec3(0.0f, 1.0f, 1.0f), 30.0f);
-    panel->addChild(slider3);
-    slider3->setRect(glm::vec4(0.0f, 0.0f, 0.0f, 10.0f), glm::vec4(10.0f, 35.0f, 40.0f, 0.0f));
+    // std::shared_ptr<Slider> slider3 = std::make_shared<Slider>(glm::vec3(0.0f, 1.0f, 1.0f), 30.0f);
+    // panel->addChild(slider3);
+    // slider3->setRect(glm::vec4(0.0f, 0.0f, 0.0f, 10.0f), glm::vec4(10.0f, 35.0f, 40.0f, 0.0f));
 
-    std::shared_ptr<Slider> slider4 = std::make_shared<Slider>(glm::vec3(0.0f, 1.0f, 1.0f), 30.0f,0.0f, 0.4f);
-    panel->addChild(slider4);
-    slider4->setRect(glm::vec4(0.0f, 0.0f, 0.0f, 10.0f), glm::vec4(10.0f, 40.0f, 40.0f, 0.0f));
+    // std::shared_ptr<Slider> slider4 = std::make_shared<Slider>(glm::vec3(0.0f, 1.0f, 1.0f), 30.0f, 0.0f, 0.4f);
+    // panel->addChild(slider4);
+    // slider4->setRect(glm::vec4(0.0f, 0.0f, 0.0f, 10.0f), glm::vec4(10.0f, 40.0f, 40.0f, 0.0f));
 
-    std::shared_ptr<Slider> slider5 = std::make_shared<Slider>(glm::vec3(0.0f, 1.0f, 1.0f), 30.0f, 0.0f, 0.4f);
-    panel->addChild(slider5);
-    slider5->setRect(glm::vec4(0.0f, 0.0f, 0.0f, 10.0f), glm::vec4(10.0f, 45.0f, 40.0f, 0.0f));
+    // std::shared_ptr<Slider> slider5 = std::make_shared<Slider>(glm::vec3(0.0f, 1.0f, 1.0f), 30.0f, 0.0f, 0.4f);
+    // panel->addChild(slider5);
+    // slider5->setRect(glm::vec4(0.0f, 0.0f, 0.0f, 10.0f), glm::vec4(10.0f, 45.0f, 40.0f, 0.0f));
 
-    auto hitNote = std::bind(&Oscillator::setBypass, &myReverb, true);
-    auto releaseNote = std::bind(&Oscillator::setBypass, &myReverb, false);
-    auto hitNote2 = std::bind(&WhiteNoise::setPower, &myNoise, 0.01f);
-    auto releaseNote2 = std::bind(&WhiteNoise::setPower, &myNoise, 0.6f);
-    auto moveSlider = std::bind(&Reverb::setFeedback, &myReverb, std::placeholders::_1);
-    auto moveSlider1 = std::bind(&Reverb::setDamping, &myReverb, std::placeholders::_1);
-    auto moveSlider2 = std::bind(&Reverb::setDryGain, &myReverb, std::placeholders::_1);
-    auto moveSlider3 = std::bind(&Reverb::setWetGain1, &myReverb, std::placeholders::_1);
-    auto moveSlider4 = std::bind(&Reverb::setWetGain2, &myReverb, std::placeholders::_1);
+    auto hitNote = std::bind(&Synthesizer::noteDown, synth.get(), 0, 1.0f);
+    auto releaseNote = std::bind(&Synthesizer::noteUp, synth.get(), 0);
+
+    auto hitNote2 = std::bind(&Synthesizer::noteDown, synth.get(), 50, 1.0f);
+    auto releaseNote2 = std::bind(&Synthesizer::noteUp, synth.get(), 50);
+
+    auto hitNote3 = std::bind(&Synthesizer::noteDown, synth.get(), 52, 1.0f);
+    auto releaseNote3 = std::bind(&Synthesizer::noteUp, synth.get(), 52);
+
+    auto hitNote4 = std::bind(&Sampler::restart, sampler.get());
+    auto releaseNote4 = std::bind(&Sampler::restart, sampler.get());
+
+    // auto moveSlider = std::bind(&Reverb::setFeedback, reverb.get(), std::placeholders::_1);
+    auto moveSlider1 = std::bind(&SquareWave::setPower, sine1.get(), std::placeholders::_1);
+    // auto moveSlider2 = std::bind(&Reverb::setDryGain, reverb.get(), std::placeholders::_1);
+    // auto moveSlider3 = std::bind(&Reverb::setWetGain1, reverb.get(), std::placeholders::_1);
+    // auto moveSlider4 = std::bind(&Reverb::setWetGain2, reverb.get(), std::placeholders::_1);
     button1->setCallbackDown(hitNote);
     button1->setCallbackUp(releaseNote);
     button2->setCallbackDown(hitNote2);
     button2->setCallbackUp(releaseNote2);
-    slider1->setCallbackUpdate(moveSlider);
-    slider2->setCallbackUpdate(moveSlider1);
-    slider3->setCallbackUpdate(moveSlider2);
-    slider4->setCallbackUpdate(moveSlider3);
-    slider5->setCallbackUpdate(moveSlider4);
+    button3->setCallbackDown(hitNote3);
+    button3->setCallbackUp(releaseNote3);
+    button4->setCallbackDown(hitNote4);
+    button4->setCallbackUp(releaseNote4);
+    slider1->setCallbackUpdate(moveSlider1);
+    // slider2->setCallbackUpdate(moveSlider1);
+    // slider3->setCallbackUpdate(moveSlider2);
+    // slider4->setCallbackUpdate(moveSlider3);
+    // slider5->setCallbackUpdate(moveSlider4);
     // button3->setCallbackDown(hitDrum);
 
 	temp_UI::InputHandler input = temp_UI::InputHandler(&root);

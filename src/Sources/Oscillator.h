@@ -27,7 +27,7 @@ public:
     Oscillator(float frequency) :
         AudioObject(),
         m_phase(0.0f),
-        m_step(0.0f)
+        m_step(2 * M_PI / (44100/frequency))
     {
         setFrequency(frequency);
     };

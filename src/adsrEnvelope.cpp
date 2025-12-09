@@ -8,55 +8,52 @@
 #include "AdsrEnvelope.h"
 
 
-float AdsrEnvelope::processSample(float sample)
+float AdsrEnvelope::step()
 {
-	return sample * m_currentPower;
-}
-
-void AdsrEnvelope::nextFrame()
-{
+	Ramp::step();
+	
 	switch(m_state)
 	{
 	case Attack:
 	{
-		m_currentPower += m_attackRate;
-		if (m_currentPower > m_target)
+		if (m_stepsRemaining <= 0)
 		{
 			m_state = Decay;
-			m_target = m_sustainPower;
 		}
 		break;
 	}
 	case Decay:
 	{
-		m_currentPower -= m_decayRate;
-		if (m_currentPower < m_target)
+		if (m_stepsRemaining <= 0)
 		{
 			m_state = Sustain;
+			setTarget(m_sustainPower, m_decayTime);
 		}
 		break;
 	}
 	case Release:
-		m_currentPower -= m_releaseRate;
-		if (m_currentPower <= 0.0f)
+	{
+		if (m_stepsRemaining <= 0)
 		{
-			m_currentPower = 0.0f;
 			m_state = Idle;
 		}
 		break;
+	}
 	default:
 		break;
 	}
+
+	return m_currentValue;
 }
 
 void AdsrEnvelope::noteDown()
 {
 	m_state = Attack;
-	m_target = m_attackPower;
+	setTarget(m_attackPower, m_attackTime);
 }
 
 void AdsrEnvelope::noteUp()
 {
 	m_state = Release;
-	m_target = 0.0f;
+	setTarget(0.0f, m_releaseTime);
 }

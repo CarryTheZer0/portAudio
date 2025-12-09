@@ -10,9 +10,9 @@
 
 #include <map>
 #include <stack>
+#include <memory>
 
 #include "AudioObject.h"
-
 
 enum NodeState
 {
@@ -24,18 +24,17 @@ enum NodeState
 struct Node
 {
     Node() :
-        process(nullptr),
         mixingStage(0),
         outputBuffer(0)  // starts unset
     {}
 
-    Node(AudioObject* process) :
+    Node(std::weak_ptr<AudioObject> process) :
         process(process),
         mixingStage(0),
         outputBuffer(-1)  // starts unset
     {}
 
-    AudioObject* process;
+    std::weak_ptr<AudioObject> process;
     int mixingStage;
     int outputBuffer;
 };
@@ -48,15 +47,15 @@ public:
     {}
     ~Graph() = default;
 
-    bool isMixer(int node) { return m_parents[node].size() > 1; }
+    std::shared_ptr<AudioObject> clone() override;
 
-    int addNode(AudioObject* pNode) 
+    int addNode(std::weak_ptr<AudioObject> pNode) 
     { 
         m_nodes.insert({m_nextIndex, Node(pNode)}); 
         return m_nextIndex++;
     }
 
-    void addChild(int parent, int child)
+    void addChild(int child, int parent)
     {
         m_children[parent].push_back(child);
         m_parents[child].push_back(parent);
@@ -73,6 +72,7 @@ private:
     std::map<int, std::vector<int>> m_parents;
     std::vector<std::vector<float>> m_buffers;
 
+    bool isMixer(int node) { return m_parents[node].size() > 1; }
     void updateMixingOrder(int outputNode);
     void processBlock(
         unsigned int frameCount,

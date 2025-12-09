@@ -8,7 +8,7 @@
 #ifndef ADSRENVELOPE_H_
 #define ADSRENVELOPE_H_
 
-#include "AudioObject.h"
+#include "Ramp.h"
 
 enum AdsrState
 {
@@ -19,56 +19,52 @@ enum AdsrState
 	Release
 };
 
-class AdsrEnvelope : public AudioObject
+class AdsrEnvelope : public Ramp
 {
 public:
-	AdsrEnvelope() = delete;
-	AdsrEnvelope(AudioObject* pInput) :
-		AudioObject(),
-		m_pInput(pInput),
+	AdsrEnvelope():
+		Ramp(0.0f),
 		m_state(Idle),
-		m_currentPower(0.0f),
-		m_attackRate(0.0000680f),
-		m_decayRate(0.0000680f),
-		m_releaseRate(0.00000680f),
-		m_attackPower(0.5f),
-		m_sustainPower(0.1f),
-		m_target(0.0f)
+		m_attackTime(0.1f),
+		m_decayTime(0.5f),
+		m_releaseTime(0.3f),
+		m_attackPower(1.0f),
+		m_sustainPower(0.6f)
+	{};
+
+	AdsrEnvelope(float value) :
+		Ramp(value),
+		m_state(Idle),
+		m_attackTime(0.1f),
+		m_decayTime(0.5f),
+		m_releaseTime(0.3f),
+		m_attackPower(1.0f),
+		m_sustainPower(0.6f)
 	{};
 	~AdsrEnvelope() = default;
 
-	float processSample(float sample) override;
-
-	void nextFrame() override;
+	float step() override;
 
 	// set attack time in seconds
-	void setAttackTime(float t) { m_attackRate = m_attackPower/(t * 44100.0f); }
+	void setAttackTime(float t) { m_attackTime = t; }
 	// set decay time in seconds
-	void setDecayTime(float t) { m_decayRate = (m_attackPower - m_sustainPower)/(t * 44100.0f); }
+	void setDecayTime(float t) { m_decayTime = t; }
 	// set release time in seconds
-	void setReleaseTime(float t) { m_releaseRate = m_sustainPower/(t * 44100.0f); }
-
-	// set attack rate per sample
-	void setAttackRate(float r) { m_attackRate = r; }
-	// set decay rate per sample
-	void setDecayRate(float r) { m_decayRate = r; }
-	// set release rate per sample
-	void setReleaseRate(float r) { m_releaseRate = r; }
+	void setReleaseTime(float t) { m_releaseTime = t; }
 
 	// press note
 	void noteDown();
 	// release note
 	void noteUp();
+
+	AdsrState getState() { return m_state; }
 private:
-	AudioObject* m_pInput;
 	AdsrState m_state;
-	float m_currentPower;
-	float m_attackRate;  // rate in samples
-	float m_decayRate;  // rate in samples
-	float m_releaseRate;  // rate in samples
+	float m_attackTime;
+	float m_decayTime;  
+	float m_releaseTime; 
 	float m_attackPower;
 	float m_sustainPower;
-	float m_target;
 };
 
 #endif /* ADSRENVELOPE_H_ */

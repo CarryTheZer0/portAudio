@@ -10,6 +10,19 @@
 
 #include "Graph.h"
 
+std::shared_ptr<AudioObject> Graph::clone() 
+{
+    // TODO shouldn't clone Graph as it uses weak pointers i.e. does not own the AudioObjects in m_nodes
+    // Instead clone the objects it points to and make a new Graph for them
+
+    std::shared_ptr<Graph> newGraph = std::make_shared<Graph>(*this);
+    for (auto node : m_nodes)
+    {
+        newGraph->m_nodes[node.first] = Node(node.second.process.lock()->clone());
+    }
+    return newGraph;
+}
+
 void Graph::updateMixingOrder(int currentNode)
 {
     std::queue<int> nodeQueue;
@@ -25,7 +38,7 @@ void Graph::updateMixingOrder(int currentNode)
         currentNode = nodeQueue.front();
         nodeQueue.pop();
 
-        for (int i = 0; i < m_parents[currentNode].size(); i++) // (int parent : m_parents[currentNode])
+        for (int i = 0; i < m_parents[currentNode].size(); i++)
         {
             int parent = m_parents[currentNode][i];
 
@@ -70,7 +83,7 @@ void Graph::processBlock(
     int currentNode, 
     std::map<int, NodeState> &processed
 ) {
-    m_nodes[currentNode].process->processBlock(frameCount, channelCount, m_buffers[m_nodes[currentNode].outputBuffer]); 
+    m_nodes[currentNode].process.lock()->processBlock(frameCount, channelCount, m_buffers[m_nodes[currentNode].outputBuffer]); 
     processed[currentNode] = Processed;
 
     // get a vector of child nodes sorted by mixing order 
