@@ -15,23 +15,26 @@ class SquareWave : public Oscillator
 public:
 	SquareWave() :
 		Oscillator(),
-		m_phase(0.0f),
 		m_power(0.5f)
 	{};
 	SquareWave(float frequency, float power) :
 		Oscillator(frequency),
-		m_phase(0.0f),
 		m_power(power)
 	{};
 
 	~SquareWave() = default;
 
-	float processSample(float sample) override;
+	std::shared_ptr<AudioObject> clone() override
+	{
+		return std::make_shared<SquareWave>(*this);
+	}
+
 	void nextFrame() override;
 
 	void setPower(float a);
 private:
-	float m_phase;
+	float processSample(float sample) override;
+
 	float m_power;
 };
 

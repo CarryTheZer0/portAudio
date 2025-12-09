@@ -40,7 +40,6 @@ public:
 			PaStreamCallbackFlags statusFlags,
 			void *userData)
 	{
-		// This breaks type safety but its ok
 		AudioStream* audioStream = ((AudioStream*)userData);
 	    return audioStream->generateBlock(input, output, frameCount, timeInfo, statusFlags);
 	}

@@ -13,8 +13,7 @@
 float SquareWave::processSample(float sample)
 {
     float amplitude = (1.0f ? m_phase > M_PI : 0.0f) * m_power;
-
-	return amplitude;
+	return sample + amplitude;
 }
 
 void SquareWave::nextFrame()

@@ -10,9 +10,15 @@
 #include "SineWave.h"
 
 
+std::shared_ptr<AudioObject> SineWave::clone()
+{
+    return std::make_shared<SineWave>(*this);
+}
+
 float SineWave::processSample(float sample)
 {
-	return sin(m_phase) * m_power;
+	float ampltude = sin(m_phase) * m_power;
+    return sample + ampltude;
 }
 
 void SineWave::nextFrame()

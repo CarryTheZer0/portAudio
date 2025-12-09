@@ -85,7 +85,9 @@
         "shared_mutex": "cpp",
         "*.tpp": "cpp",
         "memory": "cpp",
-        "scoped_allocator": "cpp"
+        "scoped_allocator": "cpp",
+        "latch": "cpp",
+        "numbers": "cpp"
     },
     "C_Cpp.errorSquiggles": "enabledIfIncludesResolve"
 }
