@@ -10,19 +10,6 @@
 
 #include "Graph.h"
 
-std::shared_ptr<AudioObject> Graph::clone() 
-{
-    // TODO shouldn't clone Graph as it uses weak pointers i.e. does not own the AudioObjects in m_nodes
-    // Instead clone the objects it points to and make a new Graph for them
-
-    std::shared_ptr<Graph> newGraph = std::make_shared<Graph>(*this);
-    for (auto node : m_nodes)
-    {
-        newGraph->m_nodes[node.first] = Node(node.second.process.lock()->clone());
-    }
-    return newGraph;
-}
-
 void Graph::updateMixingOrder(int currentNode)
 {
     std::queue<int> nodeQueue;

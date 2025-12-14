@@ -9,12 +9,6 @@
 
 #include "SineWave.h"
 
-
-std::shared_ptr<AudioObject> SineWave::clone()
-{
-    return std::make_shared<SineWave>(*this);
-}
-
 float SineWave::processSample(float sample)
 {
 	float ampltude = sin(m_phase) * m_power;

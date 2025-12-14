@@ -47,8 +47,6 @@ public:
     {}
     ~Graph() = default;
 
-    std::shared_ptr<AudioObject> clone() override;
-
     int addNode(std::weak_ptr<AudioObject> pNode) 
     { 
         m_nodes.insert({m_nextIndex, Node(pNode)}); 

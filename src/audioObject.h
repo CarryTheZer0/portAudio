@@ -16,12 +16,6 @@ class AudioObject
 public:
 	AudioObject() = default;
 	virtual ~AudioObject() = default;
-
-	virtual std::shared_ptr<AudioObject> clone() 
-	{
-		return std::make_shared<AudioObject>(*this);
-	}
-
 	/**
 	 * Process a block of samples with interleaved channels.
 	 * @param frameCount 	The number of frames in the buffer.

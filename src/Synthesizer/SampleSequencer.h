@@ -21,13 +21,7 @@ public:
         setSource(path);
     }
 
-    std::shared_ptr<AudioObject> clone() override;
-    void init(int id) override;
-
     void processBlock(unsigned int frameCount, unsigned int channelCount, std::vector<float> &buffer) override;
-    void processFrame(unsigned int frameIndex, unsigned int channelCount, std::vector<float> &buffer) override;
-
-    void nextFrame() override;
 
     void noteDown(float velocity) override;
     void noteUp() override;

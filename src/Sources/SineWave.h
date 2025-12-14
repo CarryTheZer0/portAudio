@@ -24,8 +24,6 @@ public:
 
 	~SineWave() = default;
 
-	std::shared_ptr<AudioObject> clone() override;
-
 	void nextFrame() override;
 
 	void setPower(float a);

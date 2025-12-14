@@ -24,11 +24,6 @@ public:
 
 	~SquareWave() = default;
 
-	std::shared_ptr<AudioObject> clone() override
-	{
-		return std::make_shared<SquareWave>(*this);
-	}
-
 	void nextFrame() override;
 
 	void setPower(float a);

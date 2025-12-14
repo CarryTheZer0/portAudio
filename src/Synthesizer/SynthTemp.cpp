@@ -9,32 +9,15 @@
 
 #include "SynthTemp.h"
 
-std::shared_ptr<AudioObject> SynthTemp::clone()
-{
-    std::shared_ptr<SynthTemp> newNote = std::make_shared<SynthTemp>();
-    for (auto source : m_sources)
-    {
-        std::shared_ptr<Oscillator> newSource = std::dynamic_pointer_cast<Oscillator>(source.second->clone());
-        newNote->addSource(newSource, source.first);
-    }
-    return newNote;
-}
-
-void SynthTemp::init(int id) 
-{
-    float f0 = pow(2, ((float)(id - 69.0f)/12.0f)) * 440.0f;
-    for (auto source : m_sources)
-    {
-        source.second->setFrequency(source.first * f0);
-    }
-}
+#include "Sources/SineWave.h"
+#include "Sources/SquareWave.h"
 
 void SynthTemp::processBlock(unsigned int frameCount, unsigned int channelCount, std::vector<float> &buffer)
 {
     m_buffer = std::vector<float>(frameCount * channelCount, 0.0f);
 
     for (auto source : m_sources)
-        source.second->processBlock(frameCount, channelCount, m_buffer);
+        source->processBlock(frameCount, channelCount, m_buffer);
     AudioObject::processBlock(frameCount, channelCount, buffer); 
 }
 
@@ -52,10 +35,9 @@ void SynthTemp::nextFrame()
     m_envelope.step();
 }
 
-void SynthTemp::addSource(std::shared_ptr<Oscillator> source, int harmonic)
+void SynthTemp::addSource(std::shared_ptr<Oscillator> source)
 {
-    m_sources.push_back(std::make_pair(harmonic + 1, source));
-    init(0);
+    m_sources.push_back(source);
 }
 
 void SynthTemp::noteDown(float velocity)
@@ -72,3 +54,14 @@ bool SynthTemp::isPlaying()
 {
     return m_envelope.getState() != AdsrState::Idle;
 }
+
+std::shared_ptr<SynthTemp> SynthTemp::makeNote(unsigned int id)
+{
+    float f0 = pow(2, ((float)(id - 69.0f)/12.0f)) * 440.0f;
+    auto t = std::make_shared<SynthTemp>();
+    std::shared_ptr<SquareWave> sine1 = std::make_shared<SquareWave>(f0, 0.3f);
+    std::shared_ptr<SineWave> sine2 = std::make_shared<SineWave>(f0 * 0.5f, 0.5f);
+    t->addSource(sine1);
+    t->addSource(sine2);
+    return t; 
+};
