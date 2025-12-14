@@ -18,9 +18,6 @@ public:
     SynthTemp() : 
         m_envelope(0.0f)
     {}
-  
-    std::shared_ptr<AudioObject> clone() override;
-    void init(int id) override;
 
     void processBlock(unsigned int frameCount, unsigned int channelCount, std::vector<float> &buffer) override;
     void processFrame(unsigned int frameIndex, unsigned int channelCount, std::vector<float> &buffer) override;
@@ -32,9 +29,11 @@ public:
 
     bool isPlaying() override;
 
-    void addSource(std::shared_ptr<Oscillator> source, int harmonic);
+    void addSource(std::shared_ptr<Oscillator> source);
+
+    static std::shared_ptr<SynthTemp> makeNote(unsigned int id);
 private:
-    std::vector<std::pair<int, std::shared_ptr<Oscillator>>> m_sources;
+    std::vector<std::shared_ptr<Oscillator>> m_sources;
     std::vector<float> m_buffer;
     AdsrEnvelope m_envelope;
 };

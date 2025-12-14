@@ -7,32 +7,11 @@
 
 #include "SampleSequencer.h"
 
-std::shared_ptr<AudioObject> SampleSequencer::clone()
-{
-    std::shared_ptr<SampleSequencer> newNote = std::make_shared<SampleSequencer>(*this);
-    return newNote;
-}
-
-void SampleSequencer::init(int id) 
-{
-
-}
-
 void SampleSequencer::processBlock(unsigned int frameCount, unsigned int channelCount, std::vector<float> &buffer)
 {
     if (m_bypass) { return; }
 
     m_sample.processBlock(frameCount, channelCount, buffer);
-}
-
-void SampleSequencer::processFrame(unsigned int frameIndex, unsigned int channelCount, std::vector<float> &buffer)
-{
-
-}
-
-void SampleSequencer::nextFrame()
-{
-
 }
 
 void SampleSequencer::noteDown(float velocity)
