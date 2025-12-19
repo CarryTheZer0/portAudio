@@ -5,21 +5,22 @@
  *      Author: mchlp
  */
 
-#include <vector>
-
 #include "Synthesizer.h"
 
 void Synthesizer::processBlock(unsigned int frameCount, unsigned int channelCount, std::vector<float> &buffer)
 {
-    for ( std::pair<unsigned int, std::shared_ptr<ISynthNote>> current_pair : m_notes )
-    {
-        if (!current_pair.second->isPlaying()) removeNote(current_pair.first);
-        current_pair.second->processBlock(frameCount, channelCount, buffer);
-    }
+    if ( m_bypass ) return;
 
     for ( unsigned int id : m_deleteQueue )
     {
         m_notes.erase(id);
+    }
+    m_deleteQueue.clear();
+
+    for ( std::pair<unsigned int, std::shared_ptr<ISynthNote>> current_pair : m_notes )
+    {
+        if (!current_pair.second->isPlaying()) removeNote(current_pair.first);
+        current_pair.second->processBlock(frameCount, channelCount, buffer);
     }
 }
 

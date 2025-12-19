@@ -5,8 +5,8 @@
  *      Author: mchlp
  */
 
-#ifndef AUDIOOBJECT_H_
-#define AUDIOOBJECT_H_
+#ifndef AUDIO_OBJECT_H_
+#define AUDIO_OBJECT_H_
 
 #include <vector>
 #include <memory>
@@ -14,8 +14,10 @@
 class AudioObject
 {
 public:
-	AudioObject() = default;
-	virtual ~AudioObject() = default;
+	AudioObject() :
+		m_bypass(false)
+	{}
+	
 	/**
 	 * Process a block of samples with interleaved channels.
 	 * @param frameCount 	The number of frames in the buffer.
@@ -34,8 +36,8 @@ public:
 	}
 
 	/**
-	 * Process a block of samples with interleaved channels.
-	 * @param frameIndex 	The index of the first sample in the frame.
+	 * Process one sample per channel.
+	 * @param frameIndex 	The index of the current frame.
 	 * @param channelCount 	The number of channels in the frame.
 	 * @param buffer 		The buffer to be filled.
 	 */
@@ -55,7 +57,7 @@ public:
 
 	void setBypass(bool bypass) { m_bypass = bypass; }
 protected:
-	bool m_bypass = false;
+	bool m_bypass;
 
 	/**
 	 * Process a single sample.
@@ -65,4 +67,4 @@ protected:
 	virtual float processSample(float sample) { return sample; }
 };
 
-#endif /* AUDIOOBJECT_H_ */
+#endif /* AUDIO_OBJECT_H_ */
