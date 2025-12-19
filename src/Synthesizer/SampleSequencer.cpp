@@ -9,7 +9,7 @@
 
 void SampleSequencer::processBlock(unsigned int frameCount, unsigned int channelCount, std::vector<float> &buffer)
 {
-    if (m_bypass) { return; }
+    if (m_bypass) return;
 
     m_sample.processBlock(frameCount, channelCount, buffer);
 }

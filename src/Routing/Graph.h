@@ -25,7 +25,7 @@ struct Node
 {
     Node() :
         mixingStage(0),
-        outputBuffer(0)  // starts unset
+        outputBuffer(0)
     {}
 
     Node(std::weak_ptr<AudioObject> process) :
@@ -42,18 +42,21 @@ struct Node
 class Graph : public AudioObject
 {
 public:
-    Graph() :
-        m_nextIndex(0)
-    {}
-    ~Graph() = default;
+    Graph() = delete;
 
-    int addNode(std::weak_ptr<AudioObject> pNode) 
+    Graph(std::weak_ptr<AudioObject> input) :
+        m_nextIndex(0)
+    {
+        addNode(input);
+    }
+
+    int addNode(std::weak_ptr<AudioObject> audioObject) 
     { 
-        m_nodes.insert({m_nextIndex, Node(pNode)}); 
+        m_nodes.insert({m_nextIndex, Node(audioObject)}); 
         return m_nextIndex++;
     }
 
-    void addChild(int child, int parent)
+    void addChild(int parent, int child)
     {
         m_children[parent].push_back(child);
         m_parents[child].push_back(parent);

@@ -8,8 +8,8 @@
 #include <math.h>
 
 #include "AudioStream.h"
-#include "Graph.h"
 
+#include "audioObject.h"
 
 AudioStream::~AudioStream()
 {

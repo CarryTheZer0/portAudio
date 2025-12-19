@@ -131,6 +131,6 @@ void Graph::mixBuffers(int target, int source)
 
     for ( int i = 0; i < m_buffers[target].size(); i++)
     {
-         m_buffers[target][i] +=  m_buffers[source][i];
+        m_buffers[target][i] +=  m_buffers[source][i];
     }
 }

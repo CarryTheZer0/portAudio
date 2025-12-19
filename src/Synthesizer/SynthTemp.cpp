@@ -14,6 +14,8 @@
 
 void SynthTemp::processBlock(unsigned int frameCount, unsigned int channelCount, std::vector<float> &buffer)
 {
+    if ( m_bypass ) return;
+
     m_buffer = std::vector<float>(frameCount * channelCount, 0.0f);
 
     for (auto source : m_sources)
